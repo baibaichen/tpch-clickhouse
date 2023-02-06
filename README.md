@@ -71,3 +71,30 @@ By default, the client only waits for 300s for a query response from the server.
 
 直接运行 `./runall`
 
+## 收集指标
+
+### 配置 profile
+
+在 config.xml 里增加如下配置
+
+```xml
+<processors_profile_log>
+   <database>system</database>
+   <table>processors_profile_log</table>
+   <partition_by>toYYYYMM(event_date)</partition_by>
+   <flush_interval_milliseconds>7500</flush_interval_milliseconds>
+</processors_profile_log>
+```
+
+### 收集数据
+
+执行 SQL 时需要收集 queryid，下面数据指标的 SQL **假设分别执行了 notnull 和 nullable 的 SQL**：
+
+```sql
+select concat(leftPad(toString(rw), 3 ,'0'), '_', name) as step, * from (
+select row_number() over (PARTITION BY query_id) as rw, 'notnull' as type, * from system.processors_profile_log where query_id = '67fd84e3-00c0-48d5-8d22-1cc3f4e24ed2')
+union ALL
+select concat(leftPad(toString(rw), 3 ,'0'), '_', name) as step, * from (
+select row_number() over (PARTITION BY query_id) as rw, 'nullable'as type, * from system.processors_profile_log where query_id = '82684790-5785-4971-bb77-b69b2d36bd0a');
+```
+
