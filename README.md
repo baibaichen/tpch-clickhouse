@@ -27,4 +27,47 @@ By default, the client only waits for 300s for a query response from the server.
 </config>
 ```
 
+# NotNull 和 Nullable TPCH 压测
+
+## 准备数据
+
+1. 从[这](https://www.tpc.org/tpc_documents_current_versions/current_specifications5.asp)下载 [TPC-H_Tools_v3.0.1.zip](https://www.tpc.org/TPC_Documents_Current_Versions/download_programs/tools-download-request5.asp?bm_type=TPC-H&bm_vers=3.0.1&mode=CURRENT-ONLY)，并解压
+
+2. 修改 makefile，在 `TPC-H V3.0.1/dbgen` 目录下找到 makefile.suite
+
+   ```makefile
+   
+   -- vi makefile.suite
+   
+   ################
+   ## CHANGE NAME OF ANSI COMPILER HERE
+   ################
+   CC      = gcc
+   # Current values for DATABASE are: INFORMIX, DB2, TDAT (Teradata)
+   #                                  SQLSERVER, SYBASE, ORACLE
+   # Current values for MACHINE are:  ATT, DOS, HP, IBM, ICL, MVS,
+   #                                  SGI, SUN, U2200, VMS, LINUX, WIN32
+   # Current values for WORKLOAD are:  TPCH
+   DATABASE= ORACLE  #修改这三行
+   MACHINE = LINUX   #
+   WORKLOAD = TPCH   #
+   ```
+
+3. 构建 `make -f makefile.suite`
+
+4. **进入 s100目录**，执行  `${tpctool}/dbgen -s 100 -f`
+
+5. 加载数据：
+
+   ```bash
+   # 前置条件，自己编译 clickhouse
+   # nullable
+   time ./upload-data.sh -d tpch_null -c tpch_null.sql -s 100
+   # notnual
+   time ./upload-data.sh -d tpch_notnull -c tpch_notnull.sql -s 100
+   ```
+
+## 压测
+
+直接运行 `./runall`
 

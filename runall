@@ -1,0 +1,2 @@
+time ./run.sh -d tpch_notnull -n 5
+time ./run.sh -d tpch_null -n 5
